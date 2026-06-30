@@ -5,39 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZType Space Shooter Clone</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Place Ad Network Verification Scripts inside the <head> block -->
 </head>
 <body>
-    <div id="app-wrapper">
-        <!-- LEFT SIDEBAR AD SLOT -->
-        <div class="ad-sidebar left-ad">
-            <span class="ad-label">Advertisement</span>
-            <!-- Ad code placeholder snippet paste lane -->
-        </div>
-
-        <!-- MAIN GAME CONTAINER -->
-        <div id="game-container">
-            <div id="start-screen">
-                <h1>Z-TYPE</h1>
-                <p>Select Difficulty to Start</p>
-                <div class="menu-buttons">
-                    <button class="menu-btn" data-diff="easy">EASY</button>
-                    <button class="menu-btn" data-diff="medium">MEDIUM</button>
-                    <button class="menu-btn" data-diff="hard">HARD</button>
-                </div>
-            </div>
-            <canvas id="gameCanvas"></canvas>
-            <div id="game-over-screen" class="hidden">
-                <h1>GAME OVER</h1>
-                <p>Your Score: <span id="final-score">0</span></p>
-                <button id="restart-btn">Play Again</button>
-            </div>
-        </div>
-
-        <!-- RIGHT SIDEBAR AD SLOT -->
-        <div class="ad-sidebar right-ad">
-            <span class="ad-label">Advertisement</span>
-            <!-- Ad code placeholder snippet paste lane -->
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="game-over-screen" class="hidden">
+            <h1>GAME OVER</h1>
+            <p>Your Score: <span id="final-score">0</span></p>
+            <button id="restart-btn">Play Again</button>
         </div>
     </div>
     <script src="script.js"></script>
