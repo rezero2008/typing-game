@@ -25,6 +25,7 @@ let gameActive = false;
 
 let fallingWords = [];
 let lasers = [];
+let particles = []; // Particle explosion vector tracker array
 let targetWord = null;
 
 const dictionary = {
@@ -92,6 +93,56 @@ class Laser {
     }
 }
 
+// Particle Explosion Shard Class
+class Particle {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 3 + 2; // Particle size between 2px and 5px
+        
+        // Random direction and explosion velocity calculations
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        
+        this.alpha = 1; // Transparency level for fadeout mechanics
+        this.decay = Math.random() * 0.02 + 0.015; // Speed of fadeout
+        this.color = Math.random() > 0.5 ? "#00ffcc" : "#ff3366"; // Alternates neon colors
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vx *= 0.98; // Friction calculation to slow down shards
+        this.vy *= 0.98;
+        this.alpha -= this.decay;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        
+        // Apply retro glow side effects
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = this.color;
+        
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.restore();
+    }
+}
+
+// Creates an explosion of 15 distinct shards at a word's location
+function createExplosion(x, y, wordLength) {
+    const approximateWidth = wordLength * 12; // Estimate center of the text string
+    const centerX = x + (approximateWidth / 2);
+    
+    for (let i = 0; i < 15; i++) {
+        particles.push(new Particle(centerX, y - 8));
+    }
+}
+
 menuButtons.forEach(button => {
     button.addEventListener('click', () => {
         selectedDifficulty = button.getAttribute('data-diff');
@@ -130,6 +181,10 @@ function fireLaser(tx, ty) { lasers.push(new Laser(shipX, shipY, tx, ty)); }
 function checkWordCompletion() {
     if (targetWord && targetWord.typedIndex >= targetWord.text.length) {
         score += targetWord.text.length * 10;
+        
+        // TRIGGER PARTICLE BLAST ON WORD COMPLETION
+        createExplosion(targetWord.x, targetWord.y, targetWord.text.length);
+        
         fallingWords = fallingWords.filter(w => w !== targetWord);
         targetWord = null;
         baseSpeed += speedIncrement;
@@ -151,44 +206,28 @@ function endGame() {
     gameActive = false; 
     finalScoreElement.innerText = score; 
     bgMusic.pause();
-    
-    // Save score metrics and construct leaderboard display layout
     saveAndShowLeaderboard();
-    
     gameOverScreen.classList.remove('hidden'); 
 }
 
 function saveAndShowLeaderboard() {
-    // 1. Fetch existing scores array framework from LocalStorage
     let localScores = JSON.parse(localStorage.getItem('ztype_high_scores')) || [];
-    
-    // 2. Insert current raw end-game score metrics configuration profile
     const currentRun = {
         value: score,
         difficulty: selectedDifficulty.toUpperCase(),
         date: new Date().toLocaleDateString()
     };
     localScores.push(currentRun);
-    
-    // 3. Sort structural array descending (highest to lowest)
     localScores.sort((a, b) => b.value - a.value);
-    
-    // 4. Clip structural array bounds to top 5 values max
     localScores = localScores.slice(0, 5);
-    
-    // 5. Commit structure profile safely to browser cache
     localStorage.setItem('ztype_high_scores', JSON.stringify(localScores));
     
-    // 6. Clear display box inner DOM elements and render newly compiled profiles
     scoreListElement.innerHTML = '';
     localScores.forEach((run, index) => {
         const li = document.createElement('li');
         li.className = 'score-item';
         li.innerHTML = `
-            <div>
-                <span class="score-rank">#${index + 1}</span> 
-                <span>${run.value}</span>
-            </div>
+            <div><span class="score-rank">#${index + 1}</span> <span>${run.value}</span></div>
             <span class="score-diff">(${run.difficulty})</span>
         `;
         scoreListElement.appendChild(li);
@@ -198,7 +237,7 @@ function saveAndShowLeaderboard() {
 function resetGame() {
     const config = difficultySettings[selectedDifficulty];
     baseSpeed = config.startSpeed; wordSpawnInterval = config.spawnRate; speedIncrement = config.scaling;
-    score = 0; fallingWords = []; lasers = []; targetWord = null; gameActive = true;
+    score = 0; fallingWords = []; lasers = []; particles = []; targetWord = null; gameActive = true;
     gameOverScreen.classList.add('hidden'); lastSpawnTime = performance.now();
     requestAnimationFrame(gameLoop);
 }
@@ -210,8 +249,19 @@ restartBtn.addEventListener('click', () => {
 function gameLoop(currentTime) {
     if (!gameActive) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
     if (currentTime - lastSpawnTime > wordSpawnInterval) { fallingWords.push(new FallingWord()); lastSpawnTime = currentTime; }
+    
+    // Update and draw live lasers
     lasers = lasers.filter(laser => laser.life > 0); lasers.forEach(laser => laser.draw());
+    
+    // Core Engine Loop: Manage particle mechanics, physics, and fadeouts
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+
     fallingWords.forEach(word => { word.update(); word.draw(); });
     drawShip(); drawScore();
     requestAnimationFrame(gameLoop);
