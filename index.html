@@ -8,7 +8,19 @@
 </head>
 <body>
     <div id="game-container">
+        <!-- Start Screen / Difficulty Menu -->
+        <div id="start-screen">
+            <h1>Z-TYPE</h1>
+            <p>Select Difficulty to Start</p>
+            <div class="menu-buttons">
+                <button class="menu-btn" data-diff="easy">EASY</button>
+                <button class="menu-btn" data-diff="medium">MEDIUM</button>
+                <button class="menu-btn" data-diff="hard">HARD</button>
+            </div>
+        </div>
+
         <canvas id="gameCanvas"></canvas>
+        
         <div id="game-over-screen" class="hidden">
             <h1>GAME OVER</h1>
             <p>Your Score: <span id="final-score">0</span></p>
